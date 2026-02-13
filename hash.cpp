@@ -4,6 +4,8 @@
 #include "student.cpp"
 #include <cmath>
 
+using namespace std;
+
 //create table and set size
 const int initTableSize = 100;
 Node** table;
@@ -11,13 +13,19 @@ int tableSize;
 int hashFunc(int id);
 int chainLen(Node* head);
 void insertStudent(Student* s, Node** table);
-void rehash(int tableSize);
+void rehash();
 void add(Node*& head, Node* cur, Node* prev, Node* newnext);
 void print(Node* head, Node* cur);
 void del(Node* &head, Node* prev, Node* cur, int id);
 void sumgpa(Student* head, float &sum, int &count);
 
-int main(){
+int main() {
+  //make table
+  tableSize = initTableSize;
+  table = new Node*[tableSize];
+  for (int i = 0; i < tableSize; i++) {
+    table[i] = nullptr;
+  }
   int running = 1;
   char fInput[20];
   char fNameInput[20];
@@ -52,7 +60,7 @@ int main(){
       gpaInput = round(gpaInput * 100) / 100;
       student1->gpa = gpaInput;
       //add(head, head, head, fNameNode);
-      insertStudent(student, table);
+      insertStudent(student1, table);
       cout << "added student" << endl;
       //print(head, head);
     }
@@ -72,23 +80,16 @@ int main(){
       cout << "what student do you want to delete" << endl;
       cin >> delInput;
       int index = hashFunc(delInput);
-      if (tale[index] == nullptr) {
+      if (table[index] == nullptr) {
 	cout << "this id does no exist" << endl;
       }
       else {
-        del(table[index], table[index], table[index], id);
+        del(table[index], table[index], table[index]->getNext(), delInput);
 	cout << "student was deleted" << endl;
       }
     }
   }
-  //make table
-  tableSize = initTableSize;
-  table = new Node*[tableSize];
-  for (int i = 0; i < tableSize; i++) {
-    table[i] = nullptr;
-  }
 }
-
 //hash function from copilot
 int hashFunc(int id) {
   return id % tableSize;
@@ -108,11 +109,11 @@ int chainLen(Node* head) {
 void insertStudent(Student* s, Node** targetTable) {
   int index = hashFunc(s->id);
   Node* newNode = new Node(s);
-  newNode->setNext(table[index]);
-  table[index] = newNode;
-  int len = chainLen(table[index]);
+  newNode->setNext(targetTable[index]);
+  targetTable[index] = newNode;
+  int len = chainLen(targetTable[index]);
   if (len > 3) {
-    rehash(tableSize);
+    rehash();
   }
 }
 void rehash() {
@@ -122,23 +123,19 @@ void rehash() {
   tableSize = tableSize * 2;
   int newSize = tableSize;
   Node** newTable = new Node*[newSize];
-  Node* current = oldTable[i];
-  for (int i = 0; i < oldSize; i++){
+  for (int i = 0; i < newSize; i++) {
+    newTable[i] = nullptr;
+  }
+  //add nodes from old table to new table
+  for (int i = 0; i < oldSize; i++) {
     Node* current = oldTable[i];
-    while (current != nullptr) {
+    while (current != nullptr){
       insertStudent(current->getStudent(), newTable);
       current = current->getNext();
     }
   }
   table = newTable;
-  //add nodes from old table to new table
-  for (int i = 0; i < oldSize; i++) {
-    Node* current = table[i];
-    while (table[i] != nullptr){
-      insertStudent(current->getStudent(), newTable);
-      current = current->getNext();
-    }
-  }
+  delete[] oldTable;
 }
 
 //make current into the next
@@ -195,13 +192,6 @@ void del(Node* &head, Node* prev, Node* cur, int id) {
   }
 }
 
-//help from chatgpt for getting average gpa
-//finds sum of all gpas
-void sumgpa(Node* head, float &sum, int &count){
-  if (head == nullptr){
-    return;
-  }
-  sum += head->getStudent()->gpa;
-  count++;
-  sumgpa(head->next, sum, count);
+void gen(){
+
 }
