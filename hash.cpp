@@ -3,6 +3,10 @@
 #include "node.h"
 #include "student.cpp"
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -10,6 +14,7 @@ using namespace std;
 const int initTableSize = 100;
 Node** table;
 int tableSize;
+int nextId = 1;
 int hashFunc(int id);
 int chainLen(Node* head);
 void insertStudent(Student* s, Node** table);
@@ -18,8 +23,10 @@ void add(Node*& head, Node* cur, Node* prev, Node* newnext);
 void print(Node* head, Node* cur);
 void del(Node* &head, Node* prev, Node* cur, int id);
 void sumgpa(Student* head, float &sum, int &count);
+void gen(int count);
 
 int main() {
+  srand(time(NULL));
   //make table
   tableSize = initTableSize;
   table = new Node*[tableSize];
@@ -66,6 +73,7 @@ int main() {
     }
     //print function
     else if (strcmp(fInput, "PRINT") ==0){
+      cout << "student list: " << endl;
       for (int i = 0; i < tableSize; i++){
 	print(table[i], table[i]);
 	//print(head, head);
@@ -87,6 +95,11 @@ int main() {
         del(table[index], table[index], table[index]->getNext(), delInput);
 	cout << "student was deleted" << endl;
       }
+    }
+    else if (strcmp(fInput, "GEN") == 0) {
+      int count;
+      cin >> count;
+      gen(count);
     }
   }
 }
@@ -164,9 +177,6 @@ void add(Node*& head, Node* cur, Node* prev, Node* newnext){
 
 //print out next
 void print(Node* head, Node* cur) {
-  if(cur == head){
-    cout << "student list: " << endl;
-  }
   if(cur != NULL) {
     cout << cur->getStudent()->fname << " " << cur->getStudent()->lname << ", " << cur->getStudent()->id << ", " << cur->getStudent()->gpa << " " << endl;
     print(head, cur->getNext());
@@ -192,6 +202,52 @@ void del(Node* &head, Node* prev, Node* cur, int id) {
   }
 }
 
-void gen(){
+void gen(int count){
+  //copilot helped with getting random student
+  //get first names
+  vector<string> firstName;
+  ifstream ffile("firstname.txt");
+  string fname;
 
+  while (getline(ffile, fname)) {
+    if (!fname.empty()) {
+      firstName.push_back(fname);
+    }
+  }
+  ffile.close();
+
+  //get last names
+  vector<string> lastName;
+  ifstream lfile("lastname.txt");
+  string lname;
+
+  while (getline(lfile, lname)) {
+    if (!lname.empty()) {
+      lastName.push_back(lname);
+    }
+  }
+  lfile.close();
+
+  if (firstName.empty() || lastName.empty()) {
+    cout << "files missing or empty" << endl;
+    return;
+  }
+
+  //generate random students
+  for (int i = 0; i < count; i++) {
+    string rf = firstName[rand() % firstName.size()];
+    string rl = lastName[rand() % lastName.size()];
+    Student* s = new Student;
+    //put name into array
+    strcpy(s->fname, rf.c_str());
+    strcpy(s->lname, rl.c_str());
+    s->id = nextId;
+    nextId++;
+    //random gpa
+    int g = rand() % 401;
+    s->gpa = g / 100.0f;
+    insertStudent(s, table);
+  }
+
+  cout << "Generate " << count << " random students" << endl;
 }
